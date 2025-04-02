@@ -40,7 +40,7 @@ function App() {
       formData.append('file', files[0]);
 
       try {
-        const response = await axios.post('http://localhost:8000/api/analyze', formData, {
+        const response = await axios.post('https://docanalytcs-backend.onrender.com/api/analyze', formData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -63,7 +63,7 @@ function App() {
     if (!searchQuery.trim()) return;
     
     try {
-      const response = await axios.post('http://localhost:8000/api/search', {
+      const response = await axios.post('https://docanalytcs-backend.onrender.com/api/search', {
         query: searchQuery,
         limit: 5
       });
