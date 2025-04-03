@@ -1,5 +1,7 @@
 import React, { useRef, useState } from 'react';
 import { Upload, FileText, Search, Database, Brain, Settings, Layout } from 'lucide-react';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import axios from 'axios';
 
 interface AnalysisResult {
@@ -26,6 +28,17 @@ function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+  const notify = () => {
+    toast.success("A análise do documento está em andamento.", {
+      position: "top-right",
+      autoClose: 3000, // Fecha automaticamente após 3 segundos
+      hideProgressBar: false,
+      closeOnClick: true,
+      pauseOnHover: true,
+      draggable: true,
+    });
+  };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -61,11 +74,16 @@ function App() {
 
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
-    
+
     try {
-      const response = await axios.post('https://docanalytcs-backend.onrender.com/api/search', {
-        query: searchQuery,
-        limit: 5
+      const formData = new FormData();
+      formData.append('query', searchQuery);
+      formData.append('limit', '5');
+
+      const response = await axios.post('https://docanalytcs-backend.onrender.com/api/search', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
       });
       setSearchResults(response.data.results);
     } catch (err) {
@@ -73,7 +91,6 @@ function App() {
       console.error('Erro na busca:', err);
     }
   };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
       <nav className="bg-gray-800 border-b border-gray-700">
@@ -94,7 +111,7 @@ function App() {
         {/* Seção de Upload */}
         <div className="bg-gray-800 rounded-xl p-6 shadow-xl border border-gray-700">
           <div className="flex flex-col items-center justify-center w-full h-64 border-2 border-gray-600 border-dashed rounded-lg cursor-pointer bg-gray-700/50 hover:bg-gray-600/50 transition-all" onClick={handleUploadClick}>
-       
+
             {analyzing ? (
               <div className="flex flex-col items-center">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mb-4"></div>
@@ -115,10 +132,10 @@ function App() {
                 )}
               </>
             )}
-          <input 
-              type="file" 
+            <input
+              type="file"
               ref={fileInputRef}
-              className="hidden" 
+              className="hidden"
               onChange={handleFileUpload}
               accept=".pdf,.png,.jpg,.jpeg"
               disabled={analyzing}
@@ -126,7 +143,7 @@ function App() {
           </div>
         </div>
 
-        {/* Seção de Busca */}
+        {/* BUSCA */}
         <div className="bg-gray-800 rounded-xl p-4 shadow-xl border border-gray-700">
           <div className="flex space-x-2">
             <input
@@ -134,18 +151,24 @@ function App() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Busque por documentos similares..."
+
               className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+
             />
             <button
-              onClick={handleSearch}
+              onClick={() => {
+                handleSearch();
+                notify();
+              }}
               className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
             >
               <Search className="h-5 w-5" />
             </button>
+            <ToastContainer />
           </div>
         </div>
 
-        {/* Seção de Resultados - Agora abaixo do upload */}
+        {/* RESULTADOS */}
         <div className="bg-gray-800 rounded-xl shadow-xl border border-gray-700">
           <div className="px-6 py-4 border-b border-gray-700">
             <h2 className="text-xl font-semibold text-white flex items-center">
@@ -153,7 +176,7 @@ function App() {
               Resultados da Análise
             </h2>
           </div>
-          
+
           {error && (
             <div className="bg-red-900/50 border-l-4 border-red-500 text-red-200 p-4 mx-6 mt-4 rounded-lg">
               {error}
@@ -165,11 +188,10 @@ function App() {
               results.map((result, index) => (
                 <div key={index} className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden hover:border-blue-500 transition-colors">
                   <div className="flex justify-between items-center bg-gray-700/50 px-4 py-3 border-b border-gray-700">
-                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${
-                      result.type === 'extracted_text' 
-                        ? 'bg-green-900/50 text-green-300' 
+                    <span className={`text-sm font-medium px-2 py-1 rounded-full ${result.type === 'extracted_text'
+                        ? 'bg-green-900/50 text-green-300'
                         : 'bg-purple-900/50 text-purple-300'
-                    }`}>
+                      }`}>
                       {result.type === 'extracted_text' ? 'Texto Extraído' : 'Análise AI'}
                     </span>
                     <div className="flex items-center">
