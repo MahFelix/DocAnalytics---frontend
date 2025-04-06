@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useRef, useState, useEffect } from 'react';
 import { Upload, FileText, Search, Database, Brain, Settings, Layout } from 'lucide-react';
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -28,6 +29,17 @@ function App() {
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
+
+
+    useEffect(() => {
+      const interval = setInterval(() => {
+        fetch('https://docanalytcs-backend.onrender.com/api/health')
+          .then(response => console.log('Backend pingado com sucesso'))
+          .catch(err => console.error('Erro ao pingar backend:', err));
+      }, 300000); // 5 minutos
+  
+      return () => clearInterval(interval);
+    }, []);
 
   const notify = () => {
     toast.success("A análise do documento está em andamento.", {
@@ -245,7 +257,7 @@ function App() {
           </div>
         )}
 
-        {/* Recursos */}
+        {/* RECURSOS */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-gray-800 p-4 rounded-lg border border-gray-700 flex items-center space-x-3 hover:border-purple-500 transition-colors">
             <Brain className="h-8 w-8 text-purple-500" />
